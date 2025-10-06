@@ -1,6 +1,5 @@
-# Crea un cliente válido
+# Crear cliente
 POST {{host}}/client
-[Header]
 Content-Type: application/json
 
 {
@@ -15,9 +14,8 @@ HTTP/1.1 201
 jsonpath "$.status" == "Registered"
 capture client_id jsonpath "$.clientId"
 
-# Hace una compra aprobada
+# Realizar compra
 POST {{host}}/purchase
-[Header]
 Content-Type: application/json
 
 {
