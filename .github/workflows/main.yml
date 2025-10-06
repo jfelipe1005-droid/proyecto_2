@@ -68,16 +68,51 @@ jobs:
     needs: [build-and-push-image, deploy]
 
     steps:
-      - name: Checkout session.hurl
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            session.hurl
-          sparse-checkout-cone-mode: false
-
+      # 1️⃣ Instalar Hurl
       - name: Setup hurl (API testing tool)
         uses: gacts/install-hurl@v1
 
+      # 2️⃣ Crear el archivo session.hurl
+      - name: Create session.hurl
+        run: |
+          cat > session.hurl <<'HURL'
+          # Crear cliente
+          POST {{host}}/client
+          Content-Type: application/json
+
+          {
+            "name": "Alice",
+            "country": "USA",
+            "monthlyIncome": 5000,
+            "viseClub": true,
+            "cardType": "Gold"
+          }
+
+          HTTP/1.1 201
+          jsonpath "$.status" == "Registered"
+          capture client_id jsonpath "$.clientId"
+
+          # Realizar compra
+          POST {{host}}/purchase
+          Content-Type: application/json
+
+          {
+            "clientId": {{client_id}},
+            "amount": 100,
+            "currency": "USD",
+            "purchaseDate": "2025-01-01",
+            "purchaseCountry": "USA"
+          }
+
+          HTTP/1.1 200
+          jsonpath "$.status" == "Approved"
+          HURL
+
+      # 3️⃣ Mostrar el archivo (para debug)
+      - name: Show session.hurl (with line numbers)
+        run: nl -ba session.hurl
+
+      # 4️⃣ Ejecutar pruebas con Hurl
       - name: Test API
         run: |
           hurl \
