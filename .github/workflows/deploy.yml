@@ -81,7 +81,7 @@ jobs:
       - name: Test API
         run: |
           hurl \
-            --variable host="https://${{ inputs.AZURE_WEBAPP_NAME }}.azurewebsites.net:${{ inputs.PORT }}" \
+            --variable host="https://visebank777-g8d2f7hhbjavera7.canadacentral-01.azurewebsites.net" \
             --connect-timeout 20s \
             --error-format long \
             --verbose \
