@@ -14,10 +14,10 @@ on:
       AZURE_WEBAPP_NAME:
         description: "Nombre del App Service creado en Azure"
         required: true
-      PORT:
-        description: "Port of the application"
+      AZURE_WEBAPP_HOST:
+        description: "Dominio predeterminado EXACTO del App Service (desde el portal)"
         required: true
-        default: "443"
+        default: "<TU_DOMINIO_PRED>"  # ej: visebank777-xxxx.canadacentral-01.azurewebsites.net
 
 env:
   # Nombre del servidor de login de ACR: <ACR_NAME>.azurecr.io
@@ -78,10 +78,31 @@ jobs:
       - name: Setup hurl (API testing tool)
         uses: gacts/install-hurl@v1
 
-      - name: Test API
+      - name: Esperar a que el servicio esté listo (health-check con reintentos)
+        shell: bash
+        env:
+          HOST_URL: https://${{ inputs.AZURE_WEBAPP_HOST }}
+        run: |
+          set -e
+          echo "Comprobando disponibilidad de $HOST_URL ..."
+          for i in {1..12}; do
+            # usa /health si lo configuras en App Service; si no, prueba la raíz
+            if curl -sf "$HOST_URL/health" >/dev/null 2>&1 || curl -sf "$HOST_URL" >/dev/null 2>&1; then
+              echo "Servicio accesible ✅"
+              exit 0
+            fi
+            echo "Intento $i/12: esperando que la app inicie..."
+            sleep 10
+          done
+          echo "La app no respondió tras los reintentos ❌"
+          exit 1
+
+      - name: Test API con hurl
+        env:
+          HOST_URL: https://${{ inputs.AZURE_WEBAPP_HOST }}
         run: |
           hurl \
-            --variable host="https://visebank777-g8d2f7hhbjavera7.canadacentral-01.azurewebsites.net" \
+            --variable host="${HOST_URL}" \
             --connect-timeout 20s \
             --error-format long \
             --verbose \
