@@ -17,7 +17,7 @@ on:
       AZURE_WEBAPP_HOST:
         description: "Dominio predeterminado EXACTO del App Service (desde el portal)"
         required: true
-        default: "<TU_DOMINIO_PRED>"  # ej: visebank777-xxxx.canadacentral-01.azurewebsites.net
+        default: "visebank777-g8d2f7hhbjavera7.canadacentral-01.azurewebsites.net"
 
 env:
   # Nombre del servidor de login de ACR: <ACR_NAME>.azurecr.io
@@ -85,13 +85,12 @@ jobs:
         run: |
           set -e
           echo "Comprobando disponibilidad de $HOST_URL ..."
-          for i in {1..12}; do
-            # usa /health si lo configuras en App Service; si no, prueba la raíz
+          for i in {1..24}; do
             if curl -sf "$HOST_URL/health" >/dev/null 2>&1 || curl -sf "$HOST_URL" >/dev/null 2>&1; then
               echo "Servicio accesible ✅"
               exit 0
             fi
-            echo "Intento $i/12: esperando que la app inicie..."
+            echo "Intento $i/24: esperando que la app inicie..."
             sleep 10
           done
           echo "La app no respondió tras los reintentos ❌"
